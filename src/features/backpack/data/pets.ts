@@ -1,17 +1,17 @@
-import type { BagAction, GroupMeta, Pet, PetDetailMeta, PetGroup, PetStats, Skill } from '../types'
+import type { Pet } from '../types'
 
-const petListImageMeta: Record<string, Pick<Pet, 'listImageOffsetX' | 'listImageOffsetY'>> = {
-  谱尼: { listImageOffsetX: 0, listImageOffsetY: 0 },
-  雷伊: { listImageOffsetX: 0, listImageOffsetY: 0 },
-  盖亚: { listImageOffsetX: 0, listImageOffsetY: 0 },
-  卡修斯: { listImageOffsetX: 0, listImageOffsetY: 0 },
-  布莱克: { listImageOffsetX: 0, listImageOffsetY: 0 },
-  缪斯: { listImageOffsetX: 0, listImageOffsetY: 0 },
-  波克尔: { listImageOffsetX: 0, listImageOffsetY: 0 },
-  派鲁基达: { listImageOffsetX: 0, listImageOffsetY: 0 },
-  王之哈莫: { listImageOffsetX: 0, listImageOffsetY: 0 },
-  提亚斯: { listImageOffsetX: 0, listImageOffsetY: 0 },
-  嘟拉: { listImageOffsetX: 0, listImageOffsetY: 0 },
+const petListImageMeta: Record<string, Pick<Pet, 'listImageOffsetX' | 'listImageOffsetY' | 'trait' | 'traitLevel'>> = {
+  谱尼: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '顽强', traitLevel: 5 },
+  雷伊: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '瞬杀', traitLevel: 5 },
+  盖亚: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '强袭', traitLevel: 5 },
+  卡修斯: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '坚韧', traitLevel: 5 },
+  布莱克: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '暗袭', traitLevel: 5 },
+  缪斯: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '灵巧', traitLevel: 5 },
+  波克尔: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '精准', traitLevel: 5 },
+  派鲁基达: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '坚硬', traitLevel: 5 },
+  王之哈莫: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '龙威', traitLevel: 5 },
+  提亚斯: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '迅捷', traitLevel: 5 },
+  嘟拉: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '顽强', traitLevel: 5 },
 }
 
 export const backpackPets: Pet[] = [
@@ -280,73 +280,3 @@ export const backpackPets: Pet[] = [
     isEmpty: true,
   },
 ]
-
-export const petGroups: PetGroup[] = ['battle', 'standby']
-
-export const groupMeta: Record<PetGroup, GroupMeta> = {
-  battle: {
-    title: '出战精灵',
-    countLabel: '首发阵容',
-  },
-  standby: {
-    title: '备战精灵',
-    countLabel: '候补队列',
-  },
-}
-
-export const statsByName: Record<string, PetStats> = {
-  谱尼: { attack: 152, specialAttack: 125, defense: 103, specialDefense: 103, speed: 174, hp: 239 },
-  雷伊: { attack: 153, specialAttack: 104, defense: 92, specialDefense: 94, speed: 181, hp: 256 },
-  盖亚: { attack: 168, specialAttack: 84, defense: 116, specialDefense: 92, speed: 145, hp: 268 },
-  卡修斯: { attack: 149, specialAttack: 111, defense: 103, specialDefense: 103, speed: 163, hp: 248 },
-  布莱克: { attack: 151, specialAttack: 112, defense: 98, specialDefense: 103, speed: 170, hp: 245 },
-  缪斯: { attack: 126, specialAttack: 148, defense: 106, specialDefense: 108, speed: 156, hp: 252 },
-  波克尔: { attack: 98, specialAttack: 84, defense: 76, specialDefense: 73, speed: 120, hp: 182 },
-  派鲁基达: { attack: 131, specialAttack: 108, defense: 101, specialDefense: 95, speed: 132, hp: 224 },
-  王之哈莫: { attack: 162, specialAttack: 96, defense: 121, specialDefense: 118, speed: 138, hp: 294 },
-  提亚斯: { attack: 91, specialAttack: 135, defense: 80, specialDefense: 104, speed: 148, hp: 216 },
-  嘟拉: { attack: 60, specialAttack: 49, defense: 52, specialDefense: 48, speed: 40, hp: 120 },
-}
-
-export const skillBook: Record<string, Skill[]> = {
-  谱尼: [
-    { name: '千烈虚光闪', power: 140, pp: '10/10', tone: 'light' },
-    { name: '虚无', power: 0, pp: '1/1', tone: 'water' },
-    { name: '圣灵魔闪光', power: 160, pp: '5/5', tone: 'light' },
-    { name: '灵魂干涉', power: 0, pp: '20/20', tone: 'water' },
-  ],
-  雷伊: [
-    { name: '惊雷切', power: 95, pp: '25/25', tone: 'light' },
-    { name: '雷祭', power: 0, pp: '5/5', tone: 'water' },
-    { name: '霹雳风暴', power: 150, pp: '10/10', tone: 'light' },
-    { name: '瞬雷天闪', power: 0, pp: '20/20', tone: 'water' },
-  ],
-  盖亚: [
-    { name: '破元闪', power: 120, pp: '10/10', tone: 'fire' },
-    { name: '返璞归真', power: 0, pp: '5/5', tone: 'water' },
-    { name: '日月皆伤', power: 140, pp: '10/10', tone: 'fire' },
-    { name: '战神狂怒', power: 0, pp: '20/20', tone: 'water' },
-  ],
-}
-
-export const fallbackSkills: Skill[] = [
-  { name: '火环', power: 55, pp: '35/35', tone: 'fire' },
-  { name: '凝目而视', power: 0, pp: '15/15', tone: 'water' },
-  { name: '猛击', power: 60, pp: '30/30', tone: 'fire' },
-  { name: '极速', power: 0, pp: '30/30', tone: 'water' },
-]
-
-export const bagActions: BagAction[] = Array.from({ length: 6 }, (_, index) => {
-  const id = index + 1
-
-  return {
-    id,
-    label: `功能 ${id}`,
-    icon: `/backpack/icons/${id}.png`,
-  }
-})
-
-export const petDetailMeta: PetDetailMeta = {
-  evolutionLabel: '无法进化',
-  elementalIcon: '/backpack/elem/shengling.png',
-}
