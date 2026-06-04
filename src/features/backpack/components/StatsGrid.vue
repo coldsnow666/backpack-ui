@@ -42,6 +42,8 @@ const statRows = [
   gap: 3px;
   align-content: center;
   padding: 3px 7px 3px 8px;
+  font-size: 14px;
+  margin-top: 8px;
 }
 
 .stat-row {
@@ -55,12 +57,12 @@ const statRows = [
 .stat-item {
   min-width: 0;
   display: grid;
-  grid-template-columns: 18px 34px 36px 16px 28px;
+  grid-template-columns: 20px 35px 24px 12px 16px 28px;
   align-items: center;
   column-gap: 3px;
   color: #ffffff;
-  font-size: 13px;
   font-weight: 400;
+  white-space: nowrap;
 }
 
 .stats-grid b {
@@ -69,35 +71,66 @@ const statRows = [
 }
 
 .stats-grid strong {
-  justify-self: end;
+  width: 100%;
+  justify-self: stretch;
   color: #ffe735;
   font-weight: 400;
+  text-align: right;
 }
 
 .stats-grid em {
   justify-self: start;
-  color: #2ff7ff;
+  color: #ffe735;
+  margin-left: 5px;
   font-style: normal;
   font-weight: 400;
 }
 
 .stat-icon {
-  width: 17px;
-  height: 17px;
+  width: 20px;
+  height: 20px;
   display: inline-block;
   flex: 0 0 auto;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
 }
 
 .stat-item i {
-  width: 14px;
-  height: 14px;
+  grid-column: 5;
+  width: 15px;
+  height: 15px;
   display: inline-block;
   flex: 0 0 auto;
   justify-self: center;
+  background: url("/backpack/stats/star.png") center / contain no-repeat;
 }
 
-.stat-icon,
-.stat-item i {
-  background: url("/backpack/elem/shengling.png") center / contain no-repeat;
+.stats-grid em {
+  grid-column: 6;
+}
+
+.stat-icon.attack {
+  background-image: url("/backpack/stats/atk.png");
+}
+
+.stat-icon.defense {
+  background-image: url("/backpack/stats/def.png");
+}
+
+.stat-icon.special-attack {
+  background-image: url("/backpack/stats/sp_atk.png");
+}
+
+.stat-icon.special-defense {
+  background-image: url("/backpack/stats/sp_def.png");
+}
+
+.stat-icon.speed {
+  background-image: url("/backpack/stats/spd.png");
+}
+
+.stat-icon.hp {
+  background-image: url("/backpack/stats/hp.png");
 }
 </style>

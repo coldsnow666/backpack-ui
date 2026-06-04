@@ -8,13 +8,14 @@ defineProps<{
 
 <template>
   <section class="skills" aria-label="技能">
-    <article v-for="skill in skills" :key="skill.name" :class="skill.tone">
-      <div>
-        <strong>{{ skill.name }}</strong>
-        <span>威力: {{ skill.power }}</span>
-        <span>PP: {{ skill.pp }}</span>
-      </div>
-      <i aria-hidden="true"></i>
+    <article v-for="skill in skills" :key="skill.name" class="skill">
+      <strong>{{ skill.name }}</strong>
+      <span class="skill-element-icon" tabindex="0" aria-label="圣灵系">
+        <i aria-hidden="true"></i>
+        <span class="skill-tooltip">圣灵系</span>
+      </span>
+      <span class="skill-power">威力:{{ skill.power }}</span>
+      <span class="skill-pp">PP:{{ skill.pp }}</span>
     </article>
   </section>
 </template>
@@ -25,38 +26,31 @@ defineProps<{
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
   min-height: 0;
+  padding: 0 8px;
 }
 
-.skills article {
+.skill {
   position: relative;
   min-width: 0;
-  min-height: 58px;
+  min-height: 44px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 27px;
-  align-items: center;
-  padding: 6px 6px 6px 8px;
-  overflow: hidden;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  grid-template-rows: auto auto;
+  align-items: start;
+  gap: 2px 6px;
+  padding: 10px 6px 6px 6px;
+  overflow: visible;
   border: 2px solid #16cfff;
   border-radius: 7px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent 36%),
-    linear-gradient(180deg, #075b8f, #042844);
-}
-
-.skills article.fire {
-  border-color: #ffb23a;
-}
-
-.skills div {
-  min-width: 0;
-  display: grid;
-  gap: 3px;
 }
 
 .skills strong {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
   overflow: hidden;
   color: #ffffff;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.1;
   text-overflow: ellipsis;
@@ -64,27 +58,71 @@ defineProps<{
   white-space: nowrap;
 }
 
-.skills span {
+.skill-power,
+.skill-pp {
   color: #ffffff;
-  font-size: 13px;
+  font-size: 11px;
   line-height: 1;
 }
 
-.skills i {
-  width: 23px;
-  height: 23px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #e8ffff, #158ce4);
-  box-shadow:
-    inset 0 0 0 2px rgba(255, 255, 255, 0.42),
-    0 0 8px rgba(95, 229, 255, 0.42);
+.skill-element-icon {
+  grid-column: 2;
+  grid-row: 1;
+  position: absolute;
+  top: -3px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  display: inline-grid;
+  place-items: center;
+  justify-self: end;
+  cursor: pointer;
 }
 
-.skills article.fire i {
-  background: linear-gradient(135deg, #fff05c, #ff6d00);
+.skill-element-icon i {
+  width: 20px;
+  height: 20px;
+  background: url("/backpack/elem/shengling.png") center / contain no-repeat;
 }
 
-.skills article.light i {
-  background: linear-gradient(135deg, #f7ffff, #ffe43a 58%, #ff8a00);
+.skill-tooltip {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 20;
+  width: max-content;
+  max-width: 86px;
+  padding: 3px 6px;
+  border: 1px solid #111111;
+  border-radius: 4px;
+  color: #111111;
+  background: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.22);
+  font-size: 11px;
+  line-height: 1.2;
+  opacity: 0;
+  pointer-events: none;
+  text-align: center;
+  transform: translate(8px, calc(-100% - 8px));
+  transition: opacity 120ms ease;
+  white-space: nowrap;
 }
+
+.skill-element-icon:hover .skill-tooltip,
+.skill-element-icon:focus-visible .skill-tooltip {
+  opacity: 1;
+}
+
+.skill-power {
+  grid-column: 1;
+  grid-row: 2;
+  justify-self: start;
+}
+
+.skill-pp {
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: end;
+}
+
 </style>

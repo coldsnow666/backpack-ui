@@ -75,6 +75,7 @@ strong {
   padding-left: 45px;
   user-select: none;
   -webkit-user-select: none;
+  scale: 1.2;
 }
 
 .panel-card {

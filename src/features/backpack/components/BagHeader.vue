@@ -36,7 +36,7 @@ const dotRows = [12, 10]
   gap: 3px;
   width: 220px;
   height: 28px;
-  margin-bottom: 16px;
+  margin-bottom: 38px;
   cursor: grab;
   opacity: 0.95;
   pointer-events: auto;
@@ -67,8 +67,8 @@ const dotRows = [12, 10]
 
 .close-button {
   position: absolute;
-  top: 50%;
-  right: 0;
+  top: 22px;
+  right: 2px;
   width: 30px;
   height: 30px;
   padding: 0;

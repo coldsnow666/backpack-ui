@@ -4,6 +4,7 @@ import type { Pet, PetGroup } from '../types'
 
 defineProps<{
   activeGroup: PetGroup
+  dropTarget: boolean
   hp: {
     current: number
     max: number
@@ -35,9 +36,11 @@ function selectDisplayPet(pet: Pet) {
     class="pet-row"
     :class="{
       empty: pet.isEmpty,
+      'drop-target': dropTarget,
       starter: !pet.isEmpty && activeGroup === 'battle' && petIndex === 0,
       selected: !pet.isEmpty && selected,
     }"
+    :data-pet-slot-index="petIndex"
     :aria-disabled="pet.isEmpty"
     :tabindex="pet.isEmpty ? -1 : 0"
     @click="selectDisplayPet(pet)"
@@ -124,6 +127,14 @@ function selectDisplayPet(pet: Pet) {
     inset 0 0 8px 3px rgba(255, 214, 0, 0.34);
 }
 
+.pet-row.starter.selected {
+  box-shadow:
+    inset 0 -2px 0 #ff6600,
+    inset 0 0 3px 1px rgba(255, 248, 39, 0.72),
+    inset 0 0 8px 3px rgba(255, 214, 0, 0.34),
+    0 0 0 1px #ffffff;
+}
+
 .pet-row.empty {
   cursor: default;
 }
@@ -150,6 +161,23 @@ function selectDisplayPet(pet: Pet) {
 
 .pet-row.selected .pet-edge-glow {
   opacity: 1;
+}
+
+.pet-row.drop-target {
+  border-color: #2ff7ff;
+  box-shadow:
+    inset 0 0 3px 1px rgba(47, 247, 255, 0.78),
+    inset 0 0 8px 3px rgba(0, 194, 255, 0.36);
+}
+
+.pet-row.drop-target .pet-edge-glow {
+  opacity: 1;
+}
+
+.pet-row.drop-target .pet-edge-glow::before {
+  box-shadow:
+    inset 0 0 6px 3px rgba(47, 247, 255, 0.48),
+    inset 0 0 10px 5px rgba(0, 194, 255, 0.26);
 }
 
 .pet-avatar {

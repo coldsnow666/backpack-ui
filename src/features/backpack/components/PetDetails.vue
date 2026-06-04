@@ -100,9 +100,16 @@ function moveIdentityTooltip(event: PointerEvent) {
           <div>
             <span></span>
             <dt>特性:</dt>
-            <dd>
-              {{ pet.trait ?? '顽强' }}
-              <span class="star-text">{{ starText(pet.traitLevel ?? 5, 5) }}</span>
+            <dd class="trait-value">
+              <span
+                class="trait-tooltip-trigger"
+                @pointerenter="moveIdentityTooltip"
+                @pointermove="moveIdentityTooltip"
+              >
+                {{ pet.trait ?? '顽强' }}
+                <span class="star-text">{{ starText(pet.traitLevel ?? 5, 5) }}</span>
+                <span class="identity-tooltip trait-tooltip">圣灵系属性技能增加5%</span>
+              </span>
             </dd>
           </div>
           <div>
@@ -180,13 +187,13 @@ function moveIdentityTooltip(event: PointerEvent) {
 .identity {
   min-width: 0;
   font-family: SimSun, "宋体", serif;
+  font-size: 14px;
   font-weight: 400;
 }
 
 .identity p {
   margin: 0 0 2px;
   color: #ffffff;
-  font-size: 13px;
   font-family: inherit;
   font-weight: 400;
   line-height: 1;
@@ -197,7 +204,6 @@ function moveIdentityTooltip(event: PointerEvent) {
   display: grid;
   gap: 5px;
   margin: 0;
-  padding-left: 12px;
 }
 
 .identity div {
@@ -210,7 +216,6 @@ function moveIdentityTooltip(event: PointerEvent) {
 
 .identity dt {
   color: #ffffff;
-  font-size: 13px;
   font-family: inherit;
   font-weight: 400;
   line-height: 1.15;
@@ -226,7 +231,6 @@ function moveIdentityTooltip(event: PointerEvent) {
   margin: 0;
   overflow: hidden;
   color: #ffe735;
-  font-size: 13px;
   font-family: inherit;
   font-weight: 500;
   line-height: 1.15;
@@ -274,8 +278,27 @@ function moveIdentityTooltip(event: PointerEvent) {
 }
 
 .identity-tooltip-trigger:hover .identity-tooltip,
-.identity-tooltip-trigger:focus-visible .identity-tooltip {
+.identity-tooltip-trigger:focus-visible .identity-tooltip,
+.trait-tooltip-trigger:hover .identity-tooltip,
+.trait-tooltip-trigger:focus-visible .identity-tooltip {
   opacity: 1;
+}
+
+.identity dd.trait-value {
+  overflow: visible;
+}
+
+.trait-tooltip-trigger {
+  position: relative;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.trait-tooltip {
+  max-width: none;
 }
 
 .identity dd.name-value {

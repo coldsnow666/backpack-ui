@@ -14,7 +14,7 @@ export function usePetImageFit() {
       '--pet-list-image-offset-x': `${pet.listImageOffsetX ?? 0}px`,
       '--pet-list-image-offset-y': `${pet.listImageOffsetY ?? 0}px`,
       '--pet-auto-offset-y': `${petAutoOffsetY[pet.id] ?? 0}px`,
-      '--pet-shadow-offset-y': `${Math.round(listImageHeight * 0.3)}px`,
+      '--pet-shadow-offset-y': `${Math.round(listImageHeight * 0.42)}px`,
     } as CSSProperties
   }
 
@@ -38,7 +38,7 @@ export function usePetImageFit() {
 
       const imgRect = img.getBoundingClientRect()
       const levelRect = level.getBoundingClientRect()
-      const allowedOverlap = 2
+      const allowedOverlap = 8
       const overlap = imgRect.bottom - (levelRect.top + allowedOverlap)
 
       petAutoOffsetY[pet.id] = overlap > 0 ? -Math.ceil(overlap) : 0
