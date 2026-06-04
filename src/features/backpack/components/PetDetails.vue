@@ -35,11 +35,11 @@ function moveIdentityTooltip(event: PointerEvent) {
 <template>
   <section class="detail-card panel-card" aria-label="精灵详情">
     <header class="detail-header">
-      <div class="pet-hero">
+      <div class="pet-hero" :style="petHeroImageStyle(pet)">
+        <span class="pet-hero-shadow" aria-hidden="true"></span>
         <img
           :src="pet.image"
           :alt="pet.name"
-          :style="petHeroImageStyle(pet)"
           @load="recordPetHeroImageSize($event, pet)"
         />
       </div>
@@ -55,22 +55,24 @@ function moveIdentityTooltip(event: PointerEvent) {
             <span class="identity-icon gender"></span>
             <dt>名字:</dt>
             <dd class="name-value">
-              <span>{{ pet.name }}</span>
-              <span
-                class="identity-tooltip-trigger"
-                @pointerenter="moveIdentityTooltip"
-                @pointermove="moveIdentityTooltip"
-              >
-                <img :src="detailMeta.elementalIcon" alt="" />
-                <span class="identity-tooltip">圣灵系</span>
-              </span>
-              <span
-                class="identity-tooltip-trigger"
-                @pointerenter="moveIdentityTooltip"
-                @pointermove="moveIdentityTooltip"
-              >
-                <img :src="detailMeta.genderIcon" alt="" />
-                <span class="identity-tooltip">无性别</span>
+              <span class="name-content">
+                <span class="pet-name-text">{{ pet.name }}</span>
+                <span
+                  class="identity-tooltip-trigger"
+                  @pointerenter="moveIdentityTooltip"
+                  @pointermove="moveIdentityTooltip"
+                >
+                  <img :src="detailMeta.elementalIcon" alt="" />
+                  <span class="identity-tooltip">圣灵系</span>
+                </span>
+                <span
+                  class="identity-tooltip-trigger"
+                  @pointerenter="moveIdentityTooltip"
+                  @pointermove="moveIdentityTooltip"
+                >
+                  <img :src="detailMeta.genderIcon" alt="" />
+                  <span class="identity-tooltip">无性别</span>
+                </span>
               </span>
             </dd>
           </div>
@@ -161,6 +163,20 @@ function moveIdentityTooltip(event: PointerEvent) {
   );
 }
 
+.pet-hero-shadow {
+  position: absolute;
+  top: var(--pet-hero-shadow-top, 100px);
+  left: var(--pet-hero-shadow-left, 62px);
+  z-index: 1;
+  width: var(--pet-hero-shadow-width, 54px);
+  height: var(--pet-hero-shadow-height, 20px);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(2, 16, 45, 0.78) 0%, rgba(3, 23, 58, 0.56) 42%, rgba(3, 23, 58, 0.18) 66%, rgba(3, 23, 58, 0) 78%);
+  filter: blur(0.3px);
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
 .identity {
   min-width: 0;
   font-family: SimSun, "宋体", serif;
@@ -179,7 +195,7 @@ function moveIdentityTooltip(event: PointerEvent) {
 
 .identity dl {
   display: grid;
-  gap: 3px;
+  gap: 5px;
   margin: 0;
   padding-left: 12px;
 }
@@ -220,9 +236,12 @@ function moveIdentityTooltip(event: PointerEvent) {
 
 .identity-tooltip-trigger {
   position: relative;
+  width: 18px;
+  height: 18px;
   display: inline-grid;
   place-items: center;
   flex: 0 0 auto;
+  cursor: pointer;
 }
 
 .identity-tooltip-trigger img {
@@ -259,14 +278,34 @@ function moveIdentityTooltip(event: PointerEvent) {
   opacity: 1;
 }
 
-.name-value {
-  gap: 8px;
+.identity dd.name-value {
+  position: relative;
+  overflow: visible;
+  min-width: 0;
+  max-width: 132px;
+  height: 15px;
+  display: block;
 }
 
-.name-value span {
+.name-content {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  z-index: 3;
+  max-width: 132px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 18px;
+  transform: translateY(-50%);
+}
+
+.pet-name-text {
+  display: block;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .star-text {
