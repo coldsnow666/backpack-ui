@@ -7,7 +7,7 @@ import { usePetImageFit } from '../composables/usePetImageFit'
 import ActionBar from './ActionBar.vue'
 import BagHeader from './BagHeader.vue'
 import PetSlot from './PetSlot.vue'
-import type { Pet, PetGroup, PetStats } from '../types'
+import type { ActionTab, Pet, PetGroup, PetStats } from '../types'
 
 type DragTarget = { group: PetGroup, index: number } | null
 
@@ -23,6 +23,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   changeDragOverTarget: [target: DragTarget]
   finishPetDrag: [target: DragTarget]
+  petAction: [tab: ActionTab]
   selectPet: [pet: Pet]
   startPetDrag: [group: PetGroup, index: number]
   startPanelDrag: [event: PointerEvent]
@@ -53,7 +54,9 @@ const displayPets = computed<Pet[]>(() => {
 })
 
 const disabledBottomLabels = computed(() => (isSelectedStarter() ? ['设为首发'] : []))
+const bottomActionTabs = computed(() => bottomTabs.map(actionTabForSelectedPet))
 const isBattleBag = computed(() => props.group === 'battle')
+const topActionTabs = computed(() => topTabs.map(actionTabForSelectedPet))
 const dragCardLeft = computed(() => dragPoint.value.x - dragOffset.value.x)
 const dragCardTop = computed(() => dragPoint.value.y - dragOffset.value.y)
 const dragCardVisibleWidth = computed(() => dragSlotSize.value.width * dragSlotScale.value)
@@ -108,6 +111,18 @@ function emptyPet(index: number): Pet {
 
 function isSelectedStarter() {
   return props.group === 'battle' && props.pets[0]?.id === props.selectedPet.id
+}
+
+function actionTabForSelectedPet(tab: ActionTab): ActionTab {
+  if (tab.id !== 'follow') {
+    return tab
+  }
+
+  return {
+    ...tab,
+    image: props.selectedPet.isFollowing ? (tab.activeImage ?? tab.image) : tab.image,
+    label: props.selectedPet.isFollowing ? '放入包内' : '身边跟随',
+  }
 }
 
 function avatarForPet(pet: Pet) {
@@ -270,9 +285,6 @@ useDraggable(petListRef, {
 
 <template>
   <section v-if="!isBattleBag" class="bag-card standby-card panel-card">
-    <div class="outer-rail-frame" aria-hidden="true"></div>
-    <div class="inner-glass-frame" aria-hidden="true"></div>
-
     <section ref="petListRef" class="standby-list" aria-label="备战精灵列表">
       <div
         v-for="(pet, petIndex) in displayPets"
@@ -381,7 +393,12 @@ useDraggable(petListRef, {
 
     <BagHeader :show-close="isBattleBag" @start-panel-drag="emit('startPanelDrag', $event)" />
 
-    <ActionBar class="bag-top-tabs" :tabs="topTabs" placement="top" />
+    <ActionBar
+      class="bag-top-tabs"
+      :tabs="topActionTabs"
+      placement="top"
+      @action="emit('petAction', $event)"
+    />
 
     <section ref="petListRef" class="pet-list" aria-label="精灵列表">
       <PetSlot
@@ -402,7 +419,12 @@ useDraggable(petListRef, {
       />
     </section>
 
-    <ActionBar :disabled-labels="disabledBottomLabels" :tabs="bottomTabs" placement="bottom" />
+    <ActionBar
+      :disabled-labels="disabledBottomLabels"
+      :tabs="bottomActionTabs"
+      placement="bottom"
+      @action="emit('petAction', $event)"
+    />
 
     <Teleport to="body">
       <div
@@ -465,8 +487,20 @@ useDraggable(petListRef, {
   width: 82px;
   min-height: 360px;
   grid-template-rows: minmax(0, 1fr);
+  overflow: visible;
   place-items: center;
   padding: 16px 8px;
+  border: 3px solid #00cfff;
+  background-color: rgba(0, 46, 103, 0.8);
+  box-shadow:
+    inset 0 0 0 2px rgba(0, 46, 103, 0.9),
+    0 0 0 2px rgba(0, 46, 103, 0.9),
+    inset 0 0 12px rgba(0, 86, 180, 0.18),
+    0 6px 14px rgba(0, 17, 44, 0.34);
+}
+
+.standby-card::before {
+  display: none;
 }
 
 .standby-list {

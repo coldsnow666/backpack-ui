@@ -27,6 +27,7 @@ export type Pet = {
   listImageOffsetX?: number
   listImageOffsetY?: number
   group: PetGroup
+  isFollowing?: boolean
   learningPower: PetStats
   isEmpty?: boolean
 }
@@ -52,6 +53,7 @@ export type BagAction = {
 }
 
 export type ActionTab = {
+  id?: string
   label: string
   image: string
   activeImage?: string

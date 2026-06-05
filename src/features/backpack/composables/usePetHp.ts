@@ -7,13 +7,12 @@ export function usePetHp(statsByName: Record<string, PetStats>) {
 
     return {
       current: Math.round(max * Math.min(ratio, 1)),
-      max,
+      max
     }
   }
 
   function hpPercent(pet: Pet) {
     const hp = hpForPet(pet)
-
     return Math.round((hp.current / hp.max) * 100)
   }
 

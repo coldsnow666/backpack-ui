@@ -82,6 +82,17 @@ const dotRows = [12, 10]
   background: transparent;
   cursor: pointer;
   transform: translateY(-50%);
+  transform-origin: center;
+  transition:
+    filter 140ms ease,
+    transform 140ms ease;
+}
+
+.close-button:hover,
+.close-button:focus-visible {
+  filter: brightness(1.08);
+  outline: 0;
+  transform: translateY(-50%) scale(1.12);
 }
 
 .close-button img {

@@ -121,7 +121,7 @@ function moveIdentityTooltip(event: PointerEvent) {
       </div>
     </header>
 
-    <StatsGrid :stats="stats" />
+    <StatsGrid :learning-power="pet.learningPower" :stats="stats" />
 
     <SkillList :skills="skills" />
   </section>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import type { ActionTab } from '../types'
 
 const props = defineProps<{
@@ -7,16 +8,34 @@ const props = defineProps<{
   tabs: ActionTab[]
 }>()
 
+const emit = defineEmits<{
+  action: [tab: ActionTab]
+}>()
+
+const hoveredTabKey = ref<string | null>(null)
+
+function tabKey(tab: ActionTab) {
+  return tab.id ?? tab.label
+}
+
 function isDisabled(tab: ActionTab) {
   return props.disabledLabels?.includes(tab.label) ?? false
 }
 
 function tabImage(tab: ActionTab) {
+  if (tab.id === 'starter' && hoveredTabKey.value === tabKey(tab) && tab.activeImage) {
+    return tab.activeImage
+  }
+
   if (isDisabled(tab) && tab.activeImage) {
     return tab.activeImage
   }
 
   return tab.image
+}
+
+function setHoveredTab(tab: ActionTab | null) {
+  hoveredTabKey.value = tab ? tabKey(tab) : null
 }
 
 function moveActionTooltip(event: PointerEvent) {
@@ -32,13 +51,18 @@ function moveActionTooltip(event: PointerEvent) {
   <footer v-if="placement === 'bottom'" class="bag-actions" aria-label="背包操作">
     <button
       v-for="tab in tabs"
-      :key="tab.label"
+      :key="tabKey(tab)"
       type="button"
       :class="{ disabled: isDisabled(tab) }"
       :aria-disabled="isDisabled(tab)"
       :aria-label="tab.label"
+      @click="isDisabled(tab) ? undefined : emit('action', tab)"
+      @focus="setHoveredTab(tab)"
+      @blur="setHoveredTab(null)"
       @pointerenter="moveActionTooltip"
       @pointermove="moveActionTooltip"
+      @pointerover="setHoveredTab(tab)"
+      @pointerleave="setHoveredTab(null)"
     >
       <img :src="tabImage(tab)" alt="" />
       <span class="action-tooltip">{{ tab.label }}</span>
@@ -48,11 +72,16 @@ function moveActionTooltip(event: PointerEvent) {
   <div v-else class="queue-strip">
     <button
       v-for="tab in tabs"
-      :key="tab.label"
+      :key="tabKey(tab)"
       type="button"
       :aria-label="tab.label"
+      @click="emit('action', tab)"
+      @focus="setHoveredTab(tab)"
+      @blur="setHoveredTab(null)"
       @pointerenter="moveActionTooltip"
       @pointermove="moveActionTooltip"
+      @pointerover="setHoveredTab(tab)"
+      @pointerleave="setHoveredTab(null)"
     >
       <img :src="tab.image" alt="" />
       <span class="action-tooltip">{{ tab.label }}</span>

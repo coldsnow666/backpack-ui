@@ -2,9 +2,11 @@
 import { computed, ref, type CSSProperties } from 'vue'
 import { petDetailMeta, statsByName } from '../data'
 import { useBackpackState } from '../composables/useBackpackState'
+import LearningPowerModal from '../../learning-power/components/LearningPowerModal.vue'
+import ItemOverlay from '../../items/components/ItemOverlay.vue'
 import BackpackList from './BackpackList.vue'
 import PetDetails from './PetDetails.vue'
-import type { PetGroup } from '../types'
+import type { ActionTab, PetGroup } from '../types'
 
 type DragTarget = { group: PetGroup, index: number } | null
 
@@ -19,6 +21,7 @@ const emit = defineEmits<{
 const {
   battlePets,
   finishPetDrag,
+  handlePetAction,
   selectedPet,
   selectedSkills,
   selectedStats,
@@ -28,6 +31,8 @@ const {
 } = useBackpackState()
 
 const dragOverTarget = ref<DragTarget>(null)
+const showItemOverlay = ref(false)
+const showLearningPowerModal = ref(false)
 const dragTargetPetName = computed(() => {
   if (!dragOverTarget.value) {
     return ''
@@ -47,6 +52,22 @@ function handleFinishPetDrag(target: DragTarget) {
   finishPetDrag(target)
   dragOverTarget.value = null
 }
+
+function handleBackpackAction(tab: ActionTab) {
+  if (tab.id === 'learningPower') {
+    showItemOverlay.value = false
+    showLearningPowerModal.value = true
+    return
+  }
+
+  if (tab.id === 'item') {
+    showLearningPowerModal.value = false
+    showItemOverlay.value = true
+    return
+  }
+
+  handlePetAction(tab)
+}
 </script>
 
 <template>
@@ -60,6 +81,7 @@ function handleFinishPetDrag(target: DragTarget) {
       :stats-by-name="statsByName"
       @change-drag-over-target="changeDragOverTarget"
       @finish-pet-drag="handleFinishPetDrag"
+      @pet-action="handleBackpackAction"
       @select-pet="selectPet"
       @start-pet-drag="startPetDrag"
       @start-panel-drag="emit('startPanelDrag', $event)"
@@ -74,16 +96,35 @@ function handleFinishPetDrag(target: DragTarget) {
       :stats-by-name="statsByName"
       @change-drag-over-target="changeDragOverTarget"
       @finish-pet-drag="handleFinishPetDrag"
+      @pet-action="handleBackpackAction"
       @select-pet="selectPet"
       @start-pet-drag="startPetDrag"
       @start-panel-drag="emit('startPanelDrag', $event)"
     />
 
-    <PetDetails
-      :detail-meta="petDetailMeta"
+    <div class="detail-panel-shell">
+      <PetDetails
+        :detail-meta="petDetailMeta"
+        :pet="selectedPet"
+        :skills="selectedSkills"
+        :stats="selectedStats"
+      />
+
+      <ItemOverlay v-if="showItemOverlay" :pet-name="selectedPet.name" @close="showItemOverlay = false" />
+    </div>
+
+    <LearningPowerModal
+      v-if="showLearningPowerModal"
       :pet="selectedPet"
-      :skills="selectedSkills"
-      :stats="selectedStats"
+      @close="showLearningPowerModal = false"
     />
   </section>
 </template>
+
+<style scoped>
+.detail-panel-shell {
+  position: relative;
+  min-width: 0;
+  display: grid;
+}
+</style>

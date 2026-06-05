@@ -5,7 +5,7 @@ import {
   skillBook,
   statsByName,
 } from '../data'
-import type { Pet, PetGroup } from '../types'
+import type { ActionTab, Pet, PetGroup } from '../types'
 
 export function useBackpackState() {
   const visibleSlotCount = 6
@@ -17,6 +17,7 @@ export function useBackpackState() {
     index: number
     pet: Pet
   } | null>(null)
+  const followingPetId = ref<number | null>(pets.find((pet) => pet.isFollowing)?.id ?? null)
 
   const petSlots = reactive<Record<PetGroup, Array<Pet | null>>>({
     battle: createSlots('battle'),
@@ -29,8 +30,12 @@ export function useBackpackState() {
   const selectedPet = computed(() => {
     const selectedSlotPet = [...petSlots.battle, ...petSlots.standby].find((pet) => pet?.id === activePetId.value)
     const firstSlotPet = [...petSlots.battle, ...petSlots.standby].find(Boolean)
+    const pet = selectedSlotPet ?? pets.find((pet) => pet.id === activePetId.value) ?? firstSlotPet ?? fallbackPet
 
-    return selectedSlotPet ?? pets.find((pet) => pet.id === activePetId.value) ?? firstSlotPet ?? fallbackPet
+    return {
+      ...pet,
+      isFollowing: pet.id === followingPetId.value,
+    }
   })
 
   const selectedStats = computed(() => statsByName[selectedPet.value.name] ?? statsByName['谱尼'])
@@ -38,6 +43,71 @@ export function useBackpackState() {
 
   function selectPet(pet: Pet) {
     activePetId.value = pet.id
+  }
+
+  function handlePetAction(tab: ActionTab) {
+    if (selectedPet.value.isEmpty) {
+      return
+    }
+
+    if (tab.id === 'starter') {
+      setSelectedPetAsStarter()
+      return
+    }
+
+    if (tab.id !== 'follow') {
+      return
+    }
+
+    followingPetId.value = followingPetId.value === selectedPet.value.id ? null : selectedPet.value.id
+
+    pets.forEach((pet) => {
+      pet.isFollowing = pet.id === followingPetId.value
+    })
+
+    ;(['battle', 'standby'] as const).forEach((group) => {
+      petSlots[group].forEach((pet) => {
+        if (pet) {
+          pet.isFollowing = pet.id === followingPetId.value
+        }
+      })
+    })
+  }
+
+  function findPetSlot(petId: number) {
+    for (const group of ['battle', 'standby'] as const) {
+      const index = petSlots[group].findIndex((pet) => pet?.id === petId)
+
+      if (index !== -1) {
+        return { group, index }
+      }
+    }
+
+    return null
+  }
+
+  function setSelectedPetAsStarter() {
+    const selectedSlot = findPetSlot(selectedPet.value.id)
+
+    if (!selectedSlot || (selectedSlot.group === 'battle' && selectedSlot.index === 0)) {
+      return
+    }
+
+    const starterPet = petSlots.battle[0]
+    const selectedSlotPet = petSlots[selectedSlot.group][selectedSlot.index]
+
+    petSlots.battle[0] = selectedSlotPet
+    petSlots[selectedSlot.group][selectedSlot.index] = starterPet
+
+    if (petSlots.battle[0]) {
+      petSlots.battle[0].group = 'battle'
+    }
+
+    if (petSlots[selectedSlot.group][selectedSlot.index]) {
+      petSlots[selectedSlot.group][selectedSlot.index]!.group = selectedSlot.group
+    }
+
+    activePetId.value = selectedPet.value.id
   }
 
   function createSlots(group: PetGroup) {
@@ -113,6 +183,7 @@ export function useBackpackState() {
   return {
     battlePets,
     finishPetDrag,
+    handlePetAction,
     selectedPet,
     selectedSkills,
     selectedStats,

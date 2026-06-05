@@ -2,6 +2,7 @@
 import type { PetStats } from '../types'
 
 defineProps<{
+  learningPower: PetStats
   stats: PetStats
 }>()
 
@@ -29,7 +30,7 @@ const statRows = [
         <b>{{ stat.label }}:</b>
         <strong>{{ stats[stat.key] }}</strong>
         <i></i>
-        <em>{{ rowIndex === 2 ? 255 : 0 }}</em>
+        <em>{{ learningPower[stat.key] }}</em>
       </div>
     </div>
   </section>
