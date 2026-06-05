@@ -5,7 +5,7 @@ import {
   skillBook,
   statsByName,
 } from '../data'
-import type { ActionTab, Pet, PetGroup } from '../types'
+import type { ActionTab, Pet, PetGroup, Skill } from '../types'
 
 export function useBackpackState() {
   const visibleSlotCount = 6
@@ -18,6 +18,14 @@ export function useBackpackState() {
     pet: Pet
   } | null>(null)
   const followingPetId = ref<number | null>(pets.find((pet) => pet.isFollowing)?.id ?? null)
+  const skillsByPetName = reactive<Record<string, Skill[]>>(
+    Object.fromEntries(
+      pets.map((pet) => [
+        pet.name,
+        (skillBook[pet.name] ?? fallbackSkills).map((skill) => ({ ...skill })),
+      ]),
+    ),
+  )
 
   const petSlots = reactive<Record<PetGroup, Array<Pet | null>>>({
     battle: createSlots('battle'),
@@ -39,7 +47,7 @@ export function useBackpackState() {
   })
 
   const selectedStats = computed(() => statsByName[selectedPet.value.name] ?? statsByName['谱尼'])
-  const selectedSkills = computed(() => skillBook[selectedPet.value.name] ?? fallbackSkills)
+  const selectedSkills = computed(() => skillsByPetName[selectedPet.value.name] ?? fallbackSkills)
 
   function selectPet(pet: Pet) {
     activePetId.value = pet.id
@@ -72,6 +80,20 @@ export function useBackpackState() {
         }
       })
     })
+  }
+
+  function replaceSelectedSkill(skillIndex: number, nextSkill: Skill) {
+    if (selectedPet.value.isEmpty || !Number.isInteger(skillIndex)) {
+      return
+    }
+
+    const petSkills = skillsByPetName[selectedPet.value.name]
+
+    if (!petSkills || skillIndex < 0 || skillIndex >= petSkills.length) {
+      return
+    }
+
+    petSkills[skillIndex] = { ...nextSkill }
   }
 
   function findPetSlot(petId: number) {
@@ -188,6 +210,7 @@ export function useBackpackState() {
     selectedSkills,
     selectedStats,
     selectPet,
+    replaceSelectedSkill,
     standbyPets,
     startPetDrag,
   }

@@ -234,7 +234,7 @@ const messageParts = computed(() => {
   min-width: 0;
   display: grid;
   grid-template-rows: 1fr 50px;
-  padding: 24px 24px 6px;
+  padding: 24px 24px 12px;
   border: 4px solid #075aa9;
   border-radius: 9px;
   color: #111111;

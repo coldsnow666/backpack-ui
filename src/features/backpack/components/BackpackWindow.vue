@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, ref, type CSSProperties } from 'vue'
+import Alert from '../../../components/Alert.vue'
 import { petDetailMeta, statsByName } from '../data'
 import { useBackpackState } from '../composables/useBackpackState'
 import LearningPowerModal from '../../learning-power/components/LearningPowerModal.vue'
 import ItemOverlay from '../../items/components/ItemOverlay.vue'
+import SkillReplaceModal from '../../skill-replace/components/SkillReplaceModal.vue'
 import BackpackList from './BackpackList.vue'
 import PetDetails from './PetDetails.vue'
-import type { ActionTab, PetGroup } from '../types'
+import type { ActionTab, PetGroup, Skill } from '../types'
 
 type DragTarget = { group: PetGroup, index: number } | null
 
@@ -26,6 +28,7 @@ const {
   selectedSkills,
   selectedStats,
   selectPet,
+  replaceSelectedSkill,
   standbyPets,
   startPetDrag,
 } = useBackpackState()
@@ -33,6 +36,8 @@ const {
 const dragOverTarget = ref<DragTarget>(null)
 const showItemOverlay = ref(false)
 const showLearningPowerModal = ref(false)
+const showSkillReplaceModal = ref(false)
+const skillReplaceSuccessPetName = ref('')
 const dragTargetPetName = computed(() => {
   if (!dragOverTarget.value) {
     return ''
@@ -56,17 +61,35 @@ function handleFinishPetDrag(target: DragTarget) {
 function handleBackpackAction(tab: ActionTab) {
   if (tab.id === 'learningPower') {
     showItemOverlay.value = false
+    showSkillReplaceModal.value = false
     showLearningPowerModal.value = true
     return
   }
 
   if (tab.id === 'item') {
     showLearningPowerModal.value = false
+    showSkillReplaceModal.value = false
     showItemOverlay.value = true
     return
   }
 
+  if (tab.id === 'skill') {
+    showItemOverlay.value = false
+    showLearningPowerModal.value = false
+    showSkillReplaceModal.value = true
+    return
+  }
+
   handlePetAction(tab)
+}
+
+function handleReplaceSkill(skillIndex: number, skill: Skill) {
+  replaceSelectedSkill(skillIndex, skill)
+  skillReplaceSuccessPetName.value = selectedPet.value.name
+}
+
+function closeSkillReplaceSuccessAlert() {
+  skillReplaceSuccessPetName.value = ''
 }
 </script>
 
@@ -117,6 +140,23 @@ function handleBackpackAction(tab: ActionTab) {
       v-if="showLearningPowerModal"
       :pet="selectedPet"
       @close="showLearningPowerModal = false"
+    />
+
+    <SkillReplaceModal
+      v-if="showSkillReplaceModal"
+      :pet="selectedPet"
+      :skills="selectedSkills"
+      :stats="selectedStats"
+      @close="showSkillReplaceModal = false"
+      @replace-skill="handleReplaceSkill"
+    />
+
+    <Alert
+      v-if="skillReplaceSuccessPetName"
+      :highlight-text="skillReplaceSuccessPetName"
+      :message="`你花费100赛尔号使${skillReplaceSuccessPetName}技能唤醒成功`"
+      @cancel="closeSkillReplaceSuccessAlert"
+      @confirm="closeSkillReplaceSuccessAlert"
     />
   </section>
 </template>

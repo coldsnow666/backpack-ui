@@ -62,7 +62,7 @@ strong {
   display: grid;
   place-items: center;
   padding: 18px;
-  /* background: url("/body-bg.png") center center / cover no-repeat fixed; */
+  background: url("/body-bg.png") center center / cover no-repeat fixed;
 }
 
 .backpack-window {

@@ -27,7 +27,7 @@ const useItemMessage = computed(() => {
     return ''
   }
 
-  return `你确定要为你的${props.petName}精灵使用${pendingUseItem.value.name}道具吗？`
+  return `你确定要为你的${props.petName}使用${pendingUseItem.value.name}道具吗？`
 })
 const useItemHighlights = computed(() => {
   if (!pendingUseItem.value) {
@@ -35,8 +35,8 @@ const useItemHighlights = computed(() => {
   }
 
   return [
-    `${props.petName}精灵`,
-    `使用${pendingUseItem.value.name}道具`,
+    props.petName,
+    pendingUseItem.value.name,
   ]
 })
 
@@ -63,6 +63,11 @@ function openUseItemAlert(item: BackpackItem) {
 
 function closeUseItemAlert() {
   pendingUseItem.value = null
+}
+
+function confirmUseItemAlert() {
+  closeUseItemAlert()
+  emit('close')
 }
 </script>
 
@@ -123,7 +128,7 @@ function closeUseItemAlert() {
       :highlight-text="useItemHighlights"
       :message="useItemMessage"
       @cancel="closeUseItemAlert"
-      @confirm="closeUseItemAlert"
+      @confirm="confirmUseItemAlert"
     />
   </section>
 </template>
@@ -164,12 +169,13 @@ function closeUseItemAlert() {
     inset 0 0 0 2px rgba(255, 255, 255, 0.54),
     0 2px 0 rgba(0, 36, 87, 0.6);
   cursor: pointer;
+  transform-origin: center;
 }
 
 .item-overlay-close:hover,
 .item-overlay-close:focus-visible {
-  filter: brightness(1.08);
   outline: 0;
+  transform: scale(1.12);
 }
 
 .item-overlay-close img {
@@ -225,7 +231,8 @@ function closeUseItemAlert() {
   right: 0px;
   bottom: 2px;
   color: #ffffff;
-  font-size: 14px;
+  font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
+  font-size: 13px;
   font-weight: bold;
   line-height: 1;
   text-shadow:
@@ -255,9 +262,7 @@ function closeUseItemAlert() {
   border: 0;
   background: transparent;
   cursor: pointer;
-  filter:
-    drop-shadow(0 1px 0 #00316f)
-    drop-shadow(0 0 2px rgba(111, 216, 255, 0.58));
+  transform-origin: center;
 }
 
 .item-page-button img {
@@ -273,10 +278,8 @@ function closeUseItemAlert() {
 
 .item-page-button:hover,
 .item-page-button:focus-visible {
-  filter:
-    brightness(1.12)
-    drop-shadow(0 1px 0 #00316f);
   outline: 0;
+  transform: scale(1.12);
 }
 
 .item-tooltip {
