@@ -220,12 +220,12 @@ function confirmReplace() {
 .skill-replace-modal {
   position: relative;
   isolation: isolate;
-  width: 505px;
-  height: 402px;
+  width: 620px;
+  height: 482px;
   display: grid;
-  grid-template-rows: 35px minmax(0, 1fr);
+  grid-template-rows: 48px minmax(0, 1fr);
   overflow: hidden;
-  padding: 7px 18px 9px;
+  padding: 7px 26px 13px;
   border: 2px solid #0a4b95;
   border-radius: 16px;
   background: transparent;
@@ -310,7 +310,9 @@ function confirmReplace() {
 
 .skill-replace-header {
   display: grid;
-  place-items: center;
+  grid-template-columns: 1fr;
+  align-items: center;
+  justify-items: center;
   min-width: 0;
 }
 
@@ -320,7 +322,7 @@ function confirmReplace() {
   gap: 3px;
   width: 220px;
   height: 28px;
-  margin-bottom: 6px;
+  margin-bottom: 16px;
   cursor: grab;
   opacity: 0.95;
   pointer-events: auto;
@@ -379,8 +381,8 @@ function confirmReplace() {
 .skill-replace-layout {
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 147px;
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  gap: 16px;
 }
 
 .skill-replace-left,
@@ -390,7 +392,7 @@ function confirmReplace() {
   display: grid;
   align-content: start;
   overflow: visible;
-  padding: 9px;
+  padding: 12px;
   border: 4px solid #0b5db1;
   border-radius: 8px;
   color: #111111;
@@ -401,34 +403,34 @@ function confirmReplace() {
 }
 
 .skill-replace-left {
-  grid-template-rows: 100px 54px minmax(101px, 1fr) 42px;
-  gap: 4px;
+  grid-template-rows: 124px 64px minmax(130px, 1fr) 48px;
+  gap: 7px;
 }
 
 .skill-replace-right {
-  grid-template-rows: 47px minmax(0, 1fr) 35px;
-  gap: 6px;
+  grid-template-rows: 58px minmax(0, 1fr) 40px;
+  gap: 8px;
 }
 
 .pet-overview {
   display: grid;
-  grid-template-columns: 140px minmax(0, 1fr);
+  grid-template-columns: 164px minmax(0, 1fr);
   align-items: start;
-  gap: 4px;
+  gap: 8px;
 }
 
 .pet-art {
-  width: 128px;
-  height: 108px;
+  width: 150px;
+  height: 126px;
   display: grid;
   place-items: center;
-  margin-top: -24px;
+  margin-top: -44px;
   overflow: visible;
 }
 
 .pet-art img {
-  width: 132px;
-  height: 132px;
+  width: 150px;
+  height: 150px;
   display: block;
   object-fit: contain;
   filter: drop-shadow(0 5px 5px rgba(0, 47, 103, 0.22));
@@ -439,8 +441,10 @@ function confirmReplace() {
   display: grid;
   margin: 0;
   color: #111111;
-  font-size: 14px;
-  line-height: 1.32;
+  font-size: 16px;
+  line-height: 1.42;
+  position: relative;
+  bottom: 15px;
 }
 
 .pet-meta {
@@ -450,8 +454,8 @@ function confirmReplace() {
 
 .pet-stats {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px 24px;
-  padding: 0 8px 0 12px;
+  gap: 3px 34px;
+  padding: 0 14px 0 18px;
 }
 
 .pet-meta div,
@@ -473,29 +477,29 @@ function confirmReplace() {
   min-height: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-auto-rows: 48px;
+  grid-auto-rows: 56px;
   align-content: start;
-  gap: 5px 9px;
+  gap: 8px 12px;
 }
 
 .option-skills {
   min-height: 0;
   display: grid;
-  grid-auto-rows: 50px;
+  grid-auto-rows: 58px;
   align-content: start;
-  gap: 7px;
+  gap: 8px;
 }
 
 .skill-card {
   position: relative;
   min-width: 0;
-  min-height: 48px;
+  min-height: 56px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) max-content;
   grid-template-rows: auto auto;
   align-items: start;
   gap: 2px 6px;
-  padding: 8px 6px 5px;
+  padding: 10px 8px 6px;
   overflow: visible;
   border: 2px solid #16cfff;
   border-radius: 7px;
@@ -506,7 +510,7 @@ function confirmReplace() {
 }
 
 .skill-card.option {
-  min-height: 50px;
+  min-height: 58px;
 }
 
 .skill-card.selected {
@@ -533,7 +537,7 @@ function confirmReplace() {
   min-width: 0;
   overflow: hidden;
   color: #ffffff;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 400;
   line-height: 1.1;
   text-overflow: ellipsis;
@@ -544,7 +548,7 @@ function confirmReplace() {
 .skill-power,
 .skill-pp {
   color: #ffffff;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1;
 }
 
@@ -566,23 +570,23 @@ function confirmReplace() {
   position: absolute;
   top: -3px;
   right: 2px;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   display: inline-grid;
   place-items: center;
   justify-self: end;
 }
 
 .skill-element-icon i {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   background: url("/backpack/elem/shengling.png") center / contain no-repeat;
 }
 
 .replace-tip {
   margin: 0;
   color: #005bdb;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.6;
   text-align: center;
   font-weight: bold;
@@ -600,8 +604,8 @@ function confirmReplace() {
 }
 
 .skill-replace-actions :deep(.button) {
-  min-width: 82px;
-  height: 36px;
+  min-width: 92px;
+  height: 40px;
   border-radius: 14px;
   font-size: 22px;
 }
@@ -610,15 +614,15 @@ function confirmReplace() {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 15px;
+  gap: 18px;
   color: #111111;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1;
 }
 
 .skill-pager button {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   border: 0;
   background: transparent;

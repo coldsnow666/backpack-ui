@@ -4,12 +4,22 @@ import {
   fallbackSkills,
   skillBook,
   statsByName,
+  warehousePets as initialWarehousePets,
 } from '../data'
 import type { ActionTab, Pet, PetGroup, Skill } from '../types'
+
+type PetMoveResult = {
+  ok: boolean
+  message: string
+  petName?: string
+  reason?: 'bag-full'
+}
 
 export function useBackpackState() {
   const visibleSlotCount = 6
   const pets = backpackPets.filter((pet) => !pet.isEmpty)
+  const warehousePetList = reactive<Pet[]>(initialWarehousePets.map((pet) => ({ ...pet })))
+  const knownPets = [...pets, ...warehousePetList]
   const fallbackPet = pets[0] as Pet
   const activePetId = ref(pets.find((pet) => pet.group === 'battle')?.id ?? fallbackPet.id)
   const dragSource = ref<{
@@ -20,7 +30,7 @@ export function useBackpackState() {
   const followingPetId = ref<number | null>(pets.find((pet) => pet.isFollowing)?.id ?? null)
   const skillsByPetName = reactive<Record<string, Skill[]>>(
     Object.fromEntries(
-      pets.map((pet) => [
+      knownPets.map((pet) => [
         pet.name,
         (skillBook[pet.name] ?? fallbackSkills).map((skill) => ({ ...skill })),
       ]),
@@ -34,6 +44,7 @@ export function useBackpackState() {
 
   const battlePets = computed(() => petSlots.battle)
   const standbyPets = computed(() => petSlots.standby)
+  const warehousePets = computed(() => warehousePetList)
 
   const selectedPet = computed(() => {
     const selectedSlotPet = [...petSlots.battle, ...petSlots.standby].find((pet) => pet?.id === activePetId.value)
@@ -96,6 +107,10 @@ export function useBackpackState() {
     petSkills[skillIndex] = { ...nextSkill }
   }
 
+  function bagPetCount() {
+    return [...petSlots.battle, ...petSlots.standby].filter(Boolean).length
+  }
+
   function findPetSlot(petId: number) {
     for (const group of ['battle', 'standby'] as const) {
       const index = petSlots[group].findIndex((pet) => pet?.id === petId)
@@ -146,6 +161,153 @@ export function useBackpackState() {
     const emptySlots = Array.from<null>({ length: visibleSlotCount - filledPets.length }).fill(null)
 
     petSlots[group].splice(0, visibleSlotCount, ...filledPets, ...emptySlots)
+  }
+
+  function firstBagPet() {
+    return [...petSlots.battle, ...petSlots.standby].find(Boolean) ?? null
+  }
+
+  function removePetFromBag(petId: number) {
+    for (const group of ['battle', 'standby'] as const) {
+      const index = petSlots[group].findIndex((pet) => pet?.id === petId)
+
+      if (index !== -1) {
+        const [pet] = petSlots[group].splice(index, 1, null)
+        compactSlots(group)
+
+        return pet
+      }
+    }
+
+    return null
+  }
+
+  function firstEmptyBagSlot() {
+    const preferredGroups: PetGroup[] = ['standby', 'battle']
+
+    for (const group of preferredGroups) {
+      const index = petSlots[group].findIndex((pet) => !pet)
+
+      if (index !== -1) {
+        return { group, index }
+      }
+    }
+
+    return null
+  }
+
+  function putSelectedPetInWarehouse(): PetMoveResult {
+    if (selectedPet.value.isEmpty) {
+      return { ok: false, message: '当前没有选中的精灵' }
+    }
+
+    if (bagPetCount() <= 1) {
+      return { ok: false, message: '背包中至少需要保留一只精灵' }
+    }
+
+    const pet = removePetFromBag(selectedPet.value.id)
+
+    if (!pet) {
+      return { ok: false, message: `${selectedPet.value.name}已经不在背包中`, petName: selectedPet.value.name }
+    }
+
+    pet.group = 'standby'
+    pet.isFollowing = false
+
+    if (followingPetId.value === pet.id) {
+      followingPetId.value = null
+    }
+
+    warehousePetList.unshift(pet)
+    activePetId.value = firstBagPet()?.id ?? fallbackPet.id
+
+    return { ok: true, message: `已将${pet.name}放回仓库`, petName: pet.name }
+  }
+
+  function putWarehousePetInBag(pet: Pet): PetMoveResult {
+    const slot = firstEmptyBagSlot()
+
+    if (!slot) {
+      return { ok: false, message: '背包已满，请选择要替换的精灵', petName: pet.name, reason: 'bag-full' }
+    }
+
+    const warehouseIndex = warehousePetList.findIndex((item) => item.id === pet.id)
+
+    if (warehouseIndex === -1) {
+      return { ok: false, message: `${pet.name}已经不在仓库中`, petName: pet.name }
+    }
+
+    const [nextPet] = warehousePetList.splice(warehouseIndex, 1)
+
+    nextPet.group = slot.group
+    petSlots[slot.group][slot.index] = nextPet
+    compactSlots(slot.group)
+    activePetId.value = nextPet.id
+
+    return { ok: true, message: `已将${nextPet.name}放入背包`, petName: nextPet.name }
+  }
+
+  function replaceBagPetWithWarehousePet(warehousePet: Pet, replacedPet: Pet): PetMoveResult {
+    const targetSlot = findPetSlot(replacedPet.id)
+
+    if (!targetSlot) {
+      return { ok: false, message: `${replacedPet.name}已经不在背包中`, petName: replacedPet.name }
+    }
+
+    const currentPet = petSlots[targetSlot.group][targetSlot.index]
+
+    if (!currentPet) {
+      return { ok: false, message: `${replacedPet.name}已经不在背包中`, petName: replacedPet.name }
+    }
+
+    const warehouseIndex = warehousePetList.findIndex((item) => item.id === warehousePet.id)
+
+    if (warehouseIndex === -1) {
+      return { ok: false, message: `${warehousePet.name}已经不在仓库中`, petName: warehousePet.name }
+    }
+
+    const [nextPet] = warehousePetList.splice(warehouseIndex, 1)
+
+    nextPet.group = targetSlot.group
+    currentPet.group = 'standby'
+    currentPet.isFollowing = false
+    petSlots[targetSlot.group][targetSlot.index] = nextPet
+    warehousePetList.unshift(currentPet)
+    activePetId.value = nextPet.id
+
+    if (followingPetId.value === currentPet.id) {
+      followingPetId.value = null
+    }
+
+    return {
+      ok: true,
+      message: `已将${nextPet.name}放入背包，${currentPet.name}已回到仓库`,
+      petName: nextPet.name,
+    }
+  }
+
+  function releaseWarehousePet(pet: Pet): PetMoveResult {
+    const warehouseIndex = warehousePetList.findIndex((item) => item.id === pet.id)
+
+    if (warehouseIndex === -1) {
+      return { ok: false, message: `${pet.name}已经不在仓库中`, petName: pet.name }
+    }
+
+    const [releasedPet] = warehousePetList.splice(warehouseIndex, 1)
+
+    return { ok: true, message: `已放生${releasedPet.name}`, petName: releasedPet.name }
+  }
+
+  function toggleWarehouseEliteFavorite(pet: Pet) {
+    const warehousePet = warehousePetList.find((item) => item.id === pet.id)
+
+    if (!warehousePet) {
+      return null
+    }
+
+    warehousePet.isEliteFavorite = !warehousePet.isEliteFavorite
+
+    return warehousePet
   }
 
   function startPetDrag(group: PetGroup, index: number) {
@@ -206,6 +368,10 @@ export function useBackpackState() {
     battlePets,
     finishPetDrag,
     handlePetAction,
+    putSelectedPetInWarehouse,
+    putWarehousePetInBag,
+    replaceBagPetWithWarehousePet,
+    releaseWarehousePet,
     selectedPet,
     selectedSkills,
     selectedStats,
@@ -213,5 +379,7 @@ export function useBackpackState() {
     replaceSelectedSkill,
     standbyPets,
     startPetDrag,
+    toggleWarehouseEliteFavorite,
+    warehousePets,
   }
 }

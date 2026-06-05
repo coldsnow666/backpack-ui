@@ -363,7 +363,7 @@ function confirmLearningPower() {
 .learning-power-option {
   position: relative;
   min-width: 0;
-  height: 55px;
+  height: 62px;
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr);
   align-items: center;
@@ -399,9 +399,9 @@ function confirmLearningPower() {
 .learning-power-option .learning-power-slider-row {
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 18px 18px;
+  grid-template-columns: minmax(0, 1fr) 24px 24px;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .learning-power-option strong {
@@ -500,11 +500,11 @@ function confirmLearningPower() {
 }
 
 .learning-power-step {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   display: grid;
   place-items: center;
-  padding: 0 0 1px;
+  padding: 0 0 2px;
   border: 1px solid #00499f;
   border-radius: 50%;
   color: #ffffff;
@@ -514,7 +514,7 @@ function confirmLearningPower() {
     0 1px 0 rgba(0, 42, 118, 0.75);
   cursor: pointer;
   font-family: inherit;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 400;
   line-height: 1;
   text-shadow: 0 1px 0 #004b8c;
@@ -545,6 +545,7 @@ function confirmLearningPower() {
   color: #fff12f;
   font-size: 16px;
   font-style: normal;
+  font-weight: bold;
   text-shadow:
     0 1px 0 #06479e,
     1px 0 0 #06479e,

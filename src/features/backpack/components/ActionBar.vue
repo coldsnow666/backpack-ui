@@ -113,8 +113,8 @@ function moveActionTooltip(event: PointerEvent) {
 .queue-strip button,
 .bag-actions button {
   position: relative;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
   padding: 0;
@@ -168,8 +168,8 @@ function moveActionTooltip(event: PointerEvent) {
 
 .queue-strip img,
 .bag-actions img {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
   transform-origin: center;
   will-change: transform;

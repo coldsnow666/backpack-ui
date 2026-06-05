@@ -15,6 +15,7 @@ export type Pet = {
   level: number
   serial: string
   nature: string
+  typeId?: number
   trait?: string
   traitLevel?: number
   colorfulLevel: number
@@ -28,6 +29,7 @@ export type Pet = {
   listImageOffsetY?: number
   group: PetGroup
   isFollowing?: boolean
+  isEliteFavorite?: boolean
   learningPower: PetStats
   isEmpty?: boolean
 }
