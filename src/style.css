@@ -67,15 +67,13 @@ strong {
 
 .backpack-window {
   position: relative;
-  width: 780px;
+  width: 812px;
   min-height: 360px;
   display: grid;
-  grid-template-columns: 360px 370px;
+  grid-template-columns: 82px 360px 370px;
   gap: 0;
-  padding-left: 45px;
   user-select: none;
   -webkit-user-select: none;
-  scale: 1.2;
 }
 
 .panel-card {

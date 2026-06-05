@@ -11,7 +11,6 @@ export function useBackpackState() {
   const visibleSlotCount = 6
   const pets = backpackPets.filter((pet) => !pet.isEmpty)
   const fallbackPet = pets[0] as Pet
-  const activeGroup = ref<PetGroup>('battle')
   const activePetId = ref(pets.find((pet) => pet.group === 'battle')?.id ?? fallbackPet.id)
   const dragSource = ref<{
     group: PetGroup
@@ -24,26 +23,18 @@ export function useBackpackState() {
     standby: createSlots('standby'),
   })
 
-  const visiblePets = computed(() => petSlots[activeGroup.value])
+  const battlePets = computed(() => petSlots.battle)
+  const standbyPets = computed(() => petSlots.standby)
 
   const selectedPet = computed(() => {
-    const visibleSelectedPet = visiblePets.value.find((pet) => pet?.id === activePetId.value)
-    const visibleFirstPet = visiblePets.value.find(Boolean)
+    const selectedSlotPet = [...petSlots.battle, ...petSlots.standby].find((pet) => pet?.id === activePetId.value)
+    const firstSlotPet = [...petSlots.battle, ...petSlots.standby].find(Boolean)
 
-    return visibleSelectedPet ?? pets.find((pet) => pet.id === activePetId.value) ?? visibleFirstPet ?? fallbackPet
+    return selectedSlotPet ?? pets.find((pet) => pet.id === activePetId.value) ?? firstSlotPet ?? fallbackPet
   })
 
   const selectedStats = computed(() => statsByName[selectedPet.value.name] ?? statsByName['谱尼'])
   const selectedSkills = computed(() => skillBook[selectedPet.value.name] ?? fallbackSkills)
-
-  function selectGroup(group: PetGroup) {
-    activeGroup.value = group
-
-    const firstPet = petSlots[group].find(Boolean)
-    if (firstPet) {
-      activePetId.value = firstPet.id
-    }
-  }
 
   function selectPet(pet: Pet) {
     activePetId.value = pet.id
@@ -65,10 +56,6 @@ export function useBackpackState() {
     petSlots[group].splice(0, visibleSlotCount, ...filledPets, ...emptySlots)
   }
 
-  function otherGroup(group: PetGroup): PetGroup {
-    return group === 'battle' ? 'standby' : 'battle'
-  }
-
   function startPetDrag(group: PetGroup, index: number) {
     const pet = petSlots[group][index]
 
@@ -83,48 +70,54 @@ export function useBackpackState() {
     }
     petSlots[group][index] = null
     activePetId.value = pet.id
-    activeGroup.value = otherGroup(group)
 
     return pet
   }
 
-  function finishPetDrag(targetIndex: number | null) {
+  function finishPetDrag(target: { group: PetGroup, index: number } | null) {
     const source = dragSource.value
 
     if (!source) {
       return
     }
 
-    const targetGroup = activeGroup.value
-    const targetPet = targetIndex === null ? null : (petSlots[targetGroup][targetIndex] ?? null)
+    const targetPet = target === null ? null : (petSlots[target.group][target.index] ?? null)
 
-    if (targetIndex === null || !targetPet) {
+    if (target === null || (!targetPet && target.group === source.group)) {
       petSlots[source.group][source.index] = source.pet
       compactSlots(source.group)
-      activeGroup.value = source.group
       activePetId.value = source.pet.id
       dragSource.value = null
 
       return
     }
 
-    petSlots[targetGroup][targetIndex] = source.pet
+    if (!targetPet) {
+      petSlots[target.group][target.index] = source.pet
+      compactSlots(source.group)
+      compactSlots(target.group)
+      activePetId.value = source.pet.id
+      dragSource.value = null
+
+      return
+    }
+
+    petSlots[target.group][target.index] = source.pet
     petSlots[source.group][source.index] = targetPet
     compactSlots(source.group)
-    compactSlots(targetGroup)
+    compactSlots(target.group)
     activePetId.value = source.pet.id
     dragSource.value = null
   }
 
   return {
-    activeGroup,
+    battlePets,
     finishPetDrag,
     selectedPet,
     selectedSkills,
     selectedStats,
-    selectGroup,
     selectPet,
+    standbyPets,
     startPetDrag,
-    visiblePets,
   }
 }

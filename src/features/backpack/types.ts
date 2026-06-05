@@ -22,6 +22,7 @@ export type Pet = {
   totalExp: number
   acquiredAt: string
   image: string
+  avatarImage?: string
   listImageHeight?: number
   listImageOffsetX?: number
   listImageOffsetY?: number

@@ -1,17 +1,17 @@
 import type { Pet } from '../types'
 
-const petListImageMeta: Record<string, Pick<Pet, 'listImageOffsetX' | 'listImageOffsetY' | 'trait' | 'traitLevel'>> = {
-  谱尼: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '顽强', traitLevel: 5 },
-  雷伊: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '瞬杀', traitLevel: 5 },
-  盖亚: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '强袭', traitLevel: 5 },
-  卡修斯: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '坚韧', traitLevel: 5 },
-  布莱克: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '暗袭', traitLevel: 5 },
-  缪斯: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '灵巧', traitLevel: 5 },
-  波克尔: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '精准', traitLevel: 5 },
-  派鲁基达: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '坚硬', traitLevel: 5 },
-  王之哈莫: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '龙威', traitLevel: 5 },
-  提亚斯: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '迅捷', traitLevel: 5 },
-  嘟拉: { listImageOffsetX: 0, listImageOffsetY: 0, trait: '顽强', traitLevel: 5 },
+const petListImageMeta: Record<string, Pick<Pet, 'avatarImage' | 'listImageOffsetX' | 'listImageOffsetY' | 'trait' | 'traitLevel'>> = {
+  谱尼: { avatarImage: '/backpack/pets/avatar-puni.png', listImageOffsetX: 0, listImageOffsetY: 0, trait: '顽强', traitLevel: 5 },
+  雷伊: { avatarImage: '/backpack/pets/avatar-leiyi.png', listImageOffsetX: 0, listImageOffsetY: 0, trait: '瞬杀', traitLevel: 5 },
+  盖亚: { avatarImage: '/backpack/pets/avatar-gaiya.png', listImageOffsetX: 0, listImageOffsetY: 0, trait: '强袭', traitLevel: 5 },
+  卡修斯: { avatarImage: '/backpack/pets/avatar-kaxiusi.png', listImageOffsetX: 0, listImageOffsetY: 0, trait: '坚韧', traitLevel: 5 },
+  布莱克: { avatarImage: '/backpack/pets/avatar-bulaike.png', listImageOffsetX: 0, listImageOffsetY: 0, trait: '暗袭', traitLevel: 5 },
+  缪斯: { avatarImage: '/backpack/pets/avatar-miusi.png', listImageOffsetX: 0, listImageOffsetY: 0, trait: '灵巧', traitLevel: 5 },
+  波克尔: { avatarImage: '/backpack/pets/avatar-bokeer.png', listImageOffsetX: 0, listImageOffsetY: 0, trait: '精准', traitLevel: 5 },
+  派鲁基达: { avatarImage: '/backpack/pets/avatar-pailujida.png', listImageOffsetX: 0, listImageOffsetY: 0, trait: '坚硬', traitLevel: 5 },
+  王之哈莫: { avatarImage: '/backpack/pets/avatar-wangzhihameng.png', listImageOffsetX: 0, listImageOffsetY: 0, trait: '龙威', traitLevel: 5 },
+  提亚斯: { avatarImage: '/backpack/pets/avatar-tiyasi.png', listImageOffsetX: 0, listImageOffsetY: 0, trait: '迅捷', traitLevel: 5 },
+  嘟拉: { avatarImage: '/backpack/pets/avatar-dula.png', listImageOffsetX: 0, listImageOffsetY: 0, trait: '顽强', traitLevel: 5 },
 }
 
 export const backpackPets: Pet[] = [

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, type CSSProperties } from 'vue'
 import { useDraggable } from '@vueuse/core'
-import { bottomTabs } from '../data'
+import { bottomTabs, topTabs } from '../data'
 import { usePetHp } from '../composables/usePetHp'
 import { usePetImageFit } from '../composables/usePetImageFit'
 import ActionBar from './ActionBar.vue'
@@ -9,16 +9,20 @@ import BagHeader from './BagHeader.vue'
 import PetSlot from './PetSlot.vue'
 import type { Pet, PetGroup, PetStats } from '../types'
 
+type DragTarget = { group: PetGroup, index: number } | null
+
 const props = defineProps<{
-  activeGroup: PetGroup
+  dragOverTarget: DragTarget
+  dragTargetPetName: string
+  group: PetGroup
   pets: Array<Pet | null>
   selectedPet: Pet
   statsByName: Record<string, PetStats>
 }>()
 
 const emit = defineEmits<{
-  finishPetDrag: [targetIndex: number | null]
-  selectGroup: [group: PetGroup]
+  changeDragOverTarget: [target: DragTarget]
+  finishPetDrag: [target: DragTarget]
   selectPet: [pet: Pet]
   startPetDrag: [group: PetGroup, index: number]
   startPanelDrag: [event: PointerEvent]
@@ -30,11 +34,11 @@ const dragStartPoint = ref<{ x: number, y: number } | null>(null)
 const dragCandidate = ref<{ group: PetGroup, index: number, pet: Pet } | null>(null)
 const draggedPet = ref<Pet | null>(null)
 const draggedGroup = ref<PetGroup>('battle')
-const dragOverIndex = ref<number | null>(null)
 const dragOffset = ref({ x: 0, y: 0 })
 const dragPoint = ref({ x: 0, y: 0 })
 const dragSlotSize = ref({ width: 0, height: 0 })
 const dragSlotScale = ref(1)
+const standbyNameTooltip = ref<{ text: string, x: number, y: number } | null>(null)
 const { hpForPet, hpPercent } = usePetHp(props.statsByName)
 const { adjustPetImagePosition, petListImageStyle } = usePetImageFit()
 
@@ -49,30 +53,33 @@ const displayPets = computed<Pet[]>(() => {
 })
 
 const disabledBottomLabels = computed(() => (isSelectedStarter() ? ['设为首发'] : []))
-const bagTitle = computed(() => (props.activeGroup === 'battle' ? '出战背包' : '备战背包'))
+const isBattleBag = computed(() => props.group === 'battle')
 const dragCardLeft = computed(() => dragPoint.value.x - dragOffset.value.x)
 const dragCardTop = computed(() => dragPoint.value.y - dragOffset.value.y)
 const dragCardVisibleWidth = computed(() => dragSlotSize.value.width * dragSlotScale.value)
+const dragGhostIsRound = computed(() => draggedGroup.value === 'battle')
+const roundDragCardLeft = computed(() => dragPoint.value.x - 22)
+const roundDragCardTop = computed(() => dragPoint.value.y - 22)
 const dragArrowStyle = computed(() => ({
-  left: `${dragCardLeft.value + dragCardVisibleWidth.value + 8}px`,
-  top: `${dragCardTop.value - 42}px`,
+  left: `${dragGhostIsRound.value ? roundDragCardLeft.value + 52 : dragCardLeft.value + dragCardVisibleWidth.value + 8}px`,
+  top: `${(dragGhostIsRound.value ? roundDragCardTop.value : dragCardTop.value) - 42}px`,
 }))
-const dragTargetBagTitle = computed(() => bagTitleForGroup(draggedPet.value ? otherGroup(draggedGroup.value) : props.activeGroup))
-const dragTargetPet = computed(() => {
-  if (dragOverIndex.value === null) {
-    return null
+const roundDragGhostStyle = computed(() => ({
+  left: `${dragGhostIsRound.value ? roundDragCardLeft.value : dragCardLeft.value}px`,
+  top: `${dragGhostIsRound.value ? roundDragCardTop.value : dragCardTop.value}px`,
+  transform: dragGhostIsRound.value ? 'none' : `scale(${dragSlotScale.value})`,
+  transformOrigin: 'left top',
+}))
+const standbyNameTooltipStyle = computed<CSSProperties>(() => {
+  if (!standbyNameTooltip.value) {
+    return {}
   }
 
-  return props.pets[dragOverIndex.value] ?? null
+  return {
+    left: `${standbyNameTooltip.value.x}px`,
+    top: `${standbyNameTooltip.value.y}px`,
+  }
 })
-const dragGhostStyle = computed(() => ({
-  height: `${dragSlotSize.value.height}px`,
-  left: `${dragCardLeft.value}px`,
-  top: `${dragCardTop.value}px`,
-  transform: `scale(${dragSlotScale.value})`,
-  transformOrigin: 'left top',
-  width: `${dragSlotSize.value.width}px`,
-}))
 
 function emptyPet(index: number): Pet {
   return {
@@ -86,7 +93,7 @@ function emptyPet(index: number): Pet {
     totalExp: 0,
     acquiredAt: '',
     image: '',
-    group: props.activeGroup,
+    group: props.group,
     learningPower: {
       attack: 0,
       specialAttack: 0,
@@ -100,31 +107,40 @@ function emptyPet(index: number): Pet {
 }
 
 function isSelectedStarter() {
-  return props.activeGroup === 'battle' && props.pets[0]?.id === props.selectedPet.id
+  return props.group === 'battle' && props.pets[0]?.id === props.selectedPet.id
 }
 
-function bagTitleForGroup(group: PetGroup) {
-  return group === 'battle' ? '出战背包' : '备战背包'
+function avatarForPet(pet: Pet) {
+  return pet.avatarImage ?? pet.image
 }
 
-function otherGroup(group: PetGroup): PetGroup {
-  return group === 'battle' ? 'standby' : 'battle'
+function hpArcStyle(pet: Pet): CSSProperties {
+  const percent = Math.max(0, Math.min(100, hpPercent(pet)))
+
+  return {
+    '--hp-ring-offset': `${100 - percent}`,
+  } as CSSProperties
 }
 
-function toggleGroup() {
-  emit('selectGroup', otherGroup(props.activeGroup))
+function moveStandbyNameTooltip(event: PointerEvent, pet: Pet) {
+  if (pet.isEmpty) {
+    standbyNameTooltip.value = null
+    return
+  }
+
+  standbyNameTooltip.value = {
+    text: pet.name,
+    x: event.clientX,
+    y: event.clientY,
+  }
 }
 
-function moveSwitchTooltip(event: PointerEvent) {
-  const button = event.currentTarget as HTMLElement
-  const rect = button.getBoundingClientRect()
-
-  button.style.setProperty('--tooltip-x', `${event.clientX - rect.left}px`)
-  button.style.setProperty('--tooltip-y', `${event.clientY - rect.top}px`)
+function hideStandbyNameTooltip() {
+  standbyNameTooltip.value = null
 }
 
 function petFromPointerEvent(event: PointerEvent) {
-  const slotElement = (event.target as Element | null)?.closest<HTMLElement>('[data-pet-slot-index]')
+  const slotElement = (event.target as Element | null)?.closest<HTMLElement>('[data-bag-slot="true"]')
 
   if (!slotElement) {
     return null
@@ -138,23 +154,24 @@ function petFromPointerEvent(event: PointerEvent) {
   }
 
   return {
-    group: props.activeGroup,
+    group: props.group,
     index,
     pet,
   }
 }
 
-function targetIndexFromPoint(event: PointerEvent) {
+function targetFromPoint(event: PointerEvent) {
   const element = document.elementFromPoint(event.clientX, event.clientY)
-  const slotElement = element?.closest<HTMLElement>('[data-pet-slot-index]')
+  const slotElement = element?.closest<HTMLElement>('[data-bag-slot="true"]')
 
-  if (!slotElement || !petListRef.value?.contains(slotElement)) {
+  if (!slotElement) {
     return null
   }
 
+  const group = slotElement.dataset.petGroup as PetGroup | undefined
   const index = Number(slotElement.dataset.petSlotIndex)
 
-  return Number.isInteger(index) ? index : null
+  return group && Number.isInteger(index) ? { group, index } : null
 }
 
 function beginDragMode(event: PointerEvent) {
@@ -175,7 +192,8 @@ function resetDragState() {
   dragStartPoint.value = null
   dragCandidate.value = null
   draggedPet.value = null
-  dragOverIndex.value = null
+  emit('changeDragOverTarget', null)
+  hideStandbyNameTooltip()
   dragOffset.value = {
     x: 0,
     y: 0,
@@ -238,11 +256,11 @@ useDraggable(petListRef, {
       beginDragMode(event)
     }
 
-    dragOverIndex.value = draggedPet.value ? targetIndexFromPoint(event) : null
+    emit('changeDragOverTarget', draggedPet.value ? targetFromPoint(event) : null)
   },
   onEnd: (_position, event) => {
     if (draggedPet.value) {
-      emit('finishPetDrag', targetIndexFromPoint(event))
+      emit('finishPetDrag', targetFromPoint(event))
     }
 
     resetDragState()
@@ -251,32 +269,128 @@ useDraggable(petListRef, {
 </script>
 
 <template>
-  <section class="bag-card panel-card">
+  <section v-if="!isBattleBag" class="bag-card standby-card panel-card">
     <div class="outer-rail-frame" aria-hidden="true"></div>
     <div class="inner-glass-frame" aria-hidden="true"></div>
 
-    <BagHeader @start-panel-drag="emit('startPanelDrag', $event)" />
+    <section ref="petListRef" class="standby-list" aria-label="备战精灵列表">
+      <div
+        v-for="(pet, petIndex) in displayPets"
+        :key="pet.id"
+        class="standby-item"
+        data-bag-slot="true"
+        :data-pet-group="group"
+        :data-pet-slot-index="petIndex"
+      >
+        <button
+          type="button"
+          class="standby-slot"
+          :class="{
+            empty: pet.isEmpty,
+            selected: !pet.isEmpty && selectedPet.id === pet.id,
+            'drop-target': props.dragOverTarget?.group === group && props.dragOverTarget.index === petIndex,
+          }"
+          :aria-disabled="pet.isEmpty"
+          :tabindex="pet.isEmpty ? -1 : 0"
+          @click="pet.isEmpty ? undefined : emit('selectPet', pet)"
+        >
+          <img v-if="!pet.isEmpty" :src="avatarForPet(pet)" :alt="pet.name" />
+          <svg
+            v-if="!pet.isEmpty"
+            class="standby-hp-arc"
+            :style="hpArcStyle(pet)"
+            viewBox="0 0 40 40"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <circle
+              class="standby-hp-arc-track"
+              cx="20"
+              cy="20"
+              r="19"
+              pathLength="100"
+            />
+            <circle
+              class="standby-hp-arc-fill"
+              cx="20"
+              cy="20"
+              r="19"
+              pathLength="100"
+            />
+          </svg>
+        </button>
+        <span
+          class="standby-pet-name"
+          :class="{
+            empty: pet.isEmpty,
+            selected: !pet.isEmpty && selectedPet.id === pet.id,
+          }"
+          @pointerenter="moveStandbyNameTooltip($event, pet)"
+          @pointermove="moveStandbyNameTooltip($event, pet)"
+          @pointerleave="hideStandbyNameTooltip"
+        >
+          {{ pet.isEmpty ? '无精灵' : pet.name }}
+        </span>
+      </div>
+    </section>
 
-    <button
-      type="button"
-      class="bag-switch"
-      aria-label="切换背包"
-      @click="toggleGroup"
-      @pointerenter="moveSwitchTooltip"
-      @pointermove="moveSwitchTooltip"
-    >
-      <img src="/backpack/switch.png" alt="" />
-      <span class="switch-tooltip">切换背包</span>
-    </button>
+    <Teleport to="body">
+      <div
+        v-if="draggedPet"
+        class="drag-guidance"
+        :style="dragArrowStyle"
+      >
+        <span class="drag-hint-text">
+          <template v-if="props.dragOverTarget && props.dragTargetPetName">
+            松手后替换目标精灵<span class="drag-hint-accent">{{ props.dragTargetPetName }}</span>
+          </template>
+          <template v-else-if="props.dragOverTarget">
+            松手后放入<span class="drag-hint-accent">空位</span>
+          </template>
+          <template v-else>
+            松手后<span class="drag-hint-accent">回到原位</span>
+          </template>
+        </span>
+        <img
+          class="drag-arrow"
+          src="/backpack/arrow.png"
+          alt=""
+        />
+      </div>
 
-    <h2 class="bag-title">{{ bagTitle }}</h2>
+      <div v-if="draggedPet" class="round-drag-ghost" :style="roundDragGhostStyle">
+        <span class="standby-slot standby-ghost-slot">
+          <img :src="avatarForPet(draggedPet)" :alt="draggedPet.name" />
+        </span>
+        <span class="standby-pet-name">{{ draggedPet.name }}</span>
+      </div>
+
+      <div
+        v-if="standbyNameTooltip"
+        class="standby-name-tooltip"
+        :style="standbyNameTooltipStyle"
+      >
+        {{ standbyNameTooltip.text }}
+      </div>
+    </Teleport>
+  </section>
+
+  <section v-else class="bag-card panel-card">
+    <div class="outer-rail-frame" aria-hidden="true"></div>
+    <div class="inner-glass-frame" aria-hidden="true"></div>
+
+    <BagHeader :show-close="isBattleBag" @start-panel-drag="emit('startPanelDrag', $event)" />
+
+    <ActionBar class="bag-top-tabs" :tabs="topTabs" placement="top" />
 
     <section ref="petListRef" class="pet-list" aria-label="精灵列表">
       <PetSlot
         v-for="(pet, petIndex) in displayPets"
         :key="pet.id"
-        :active-group="activeGroup"
-        :drop-target="dragOverIndex === petIndex"
+        :active-group="group"
+        data-bag-slot="true"
+        :data-pet-group="group"
+        :drop-target="props.dragOverTarget?.group === group && props.dragOverTarget.index === petIndex"
         :hp="hpForPet(pet)"
         :hp-percent="hpPercent(pet)"
         :image-style="petListImageStyle(pet)"
@@ -297,12 +411,14 @@ useDraggable(petListRef, {
         :style="dragArrowStyle"
       >
         <span class="drag-hint-text">
-          当前切换至<span class="drag-hint-accent">{{ dragTargetBagTitle }}</span>
-          <template v-if="dragTargetPet">
-            ，松开后替换<span class="drag-hint-accent">{{ dragTargetBagTitle }}</span>精灵<span class="drag-hint-accent">{{ dragTargetPet.name }}</span>
+          <template v-if="props.dragOverTarget && props.dragTargetPetName">
+            松手后替换目标精灵<span class="drag-hint-accent">{{ props.dragTargetPetName }}</span>
+          </template>
+          <template v-else-if="props.dragOverTarget">
+            松手后放入<span class="drag-hint-accent">空位</span>
           </template>
           <template v-else>
-            ，松手<span class="drag-hint-accent">回到原位</span>
+            松手后<span class="drag-hint-accent">回到原位</span>
           </template>
         </span>
         <img
@@ -312,19 +428,11 @@ useDraggable(petListRef, {
         />
       </div>
 
-      <div v-if="draggedPet" class="pet-drag-ghost" :style="dragGhostStyle">
-        <PetSlot
-          :active-group="draggedGroup"
-          :drop-target="false"
-          :hp="hpForPet(draggedPet)"
-          :hp-percent="hpPercent(draggedPet)"
-          :image-style="petListImageStyle(draggedPet)"
-          :pet="draggedPet"
-          :pet-index="dragCandidate?.index ?? 0"
-          :selected="selectedPet.id === draggedPet.id"
-          @image-load="adjustPetImagePosition"
-          @select="() => undefined"
-        />
+      <div v-if="draggedPet" class="round-drag-ghost" :style="roundDragGhostStyle">
+        <span class="standby-slot standby-ghost-slot">
+          <img :src="avatarForPet(draggedPet)" :alt="draggedPet.name" />
+        </span>
+        <span class="standby-pet-name">{{ draggedPet.name }}</span>
       </div>
     </Teleport>
   </section>
@@ -351,6 +459,160 @@ useDraggable(petListRef, {
   box-shadow: inset 0 -14px 0 rgba(10, 139, 204, 0.24);
   content: "";
   pointer-events: none;
+}
+
+.standby-card {
+  width: 82px;
+  min-height: 360px;
+  grid-template-rows: minmax(0, 1fr);
+  place-items: center;
+  padding: 16px 8px;
+}
+
+.standby-list {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: repeat(6, 54px);
+  gap: 4px;
+}
+
+.standby-item {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: 44px 10px;
+  justify-items: center;
+  align-content: start;
+  margin-bottom: 2px;
+}
+
+.standby-pet-name {
+  max-width: 58px;
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 10px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.standby-pet-name.empty {
+  opacity: 0.72;
+}
+
+.standby-pet-name.selected {
+  color: #ffffff;
+  text-shadow:
+    0 0 2px rgba(255, 255, 255, 0.8),
+    0 0 4px rgba(255, 248, 39, 0.82),
+    0 0 7px rgba(255, 214, 0, 0.46),
+    0 1px 0 #004b8c;
+}
+
+.standby-name-tooltip {
+  position: fixed;
+  z-index: 1200;
+  width: max-content;
+  max-width: none;
+  padding: 3px 6px;
+  border: 1px solid #111111;
+  border-radius: 4px;
+  color: #111111;
+  background: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.22);
+  font-size: 11px;
+  line-height: 1.2;
+  pointer-events: none;
+  text-align: center;
+  transform: translate(8px, calc(-100% - 8px));
+  white-space: nowrap;
+}
+
+.standby-slot {
+  position: relative;
+  overflow: hidden;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 2px solid #176daa;
+  border-radius: 50%;
+  background: #184992;
+  cursor: pointer;
+}
+
+.standby-slot.empty {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.standby-slot.selected {
+  border-color: #ffff1e;
+  box-shadow:
+    inset 0 0 0 0 rgba(255, 255, 221, 0.96),
+    inset 0 0 3px 1px rgba(255, 248, 39, 0.72),
+    inset 0 0 8px 3px rgba(255, 214, 0, 0.34),
+    0 0 4px rgba(255, 247, 41, 0.58),
+    0 0 8px rgba(255, 214, 0, 0.34);
+  filter: drop-shadow(0 0 2px rgba(255, 247, 41, 0.5));
+}
+
+.standby-slot.selected img {
+  filter: drop-shadow(0 0 3px rgba(255, 247, 41, 0.58));
+}
+
+.standby-slot.drop-target {
+  border-color: #2ff7ff;
+  box-shadow:
+    inset 0 0 3px 1px rgba(47, 247, 255, 0.78),
+    inset 0 0 8px 3px rgba(0, 194, 255, 0.36);
+}
+
+.standby-slot img {
+  position: relative;
+  z-index: 3;
+  width: 40px;
+  height: 40px;
+  display: block;
+  object-fit: contain;
+  pointer-events: none;
+  /* transform: translateY(-2px); */
+}
+
+.standby-hp-arc {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  transform: rotate(-90deg);
+}
+
+.standby-hp-arc-track,
+.standby-hp-arc-fill {
+  fill: none;
+  stroke-linecap: butt;
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+}
+
+.standby-hp-arc-track {
+  stroke: rgba(3, 21, 55, 0.62);
+}
+
+.standby-hp-arc-fill {
+  stroke: #f00000;
+  stroke-dasharray: 100;
+  stroke-dashoffset: var(--hp-ring-offset);
+  filter:
+    drop-shadow(0 0 1px rgba(255, 255, 255, 0.72))
+    drop-shadow(0 0 1px rgba(255, 0, 0, 0.95));
 }
 
 .inner-glass-frame {
@@ -417,88 +679,15 @@ useDraggable(petListRef, {
   z-index: 1;
 }
 
-.bag-switch {
+.bag-top-tabs {
   position: absolute;
-  top: 18px;
-  left: 37px;
-  z-index: 4;
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
-.bag-switch img {
-  width: 38px;
-  height: 38px;
-  object-fit: contain;
-  transform-origin: center;
-  transition:
-    transform 160ms ease,
-    filter 160ms ease;
-}
-
-.bag-switch:hover img,
-.bag-switch:focus-visible img {
-  filter: brightness(1.08) drop-shadow(0 0 4px rgba(255, 255, 255, 0.55));
-  transform: scale(1.08);
-}
-
-.switch-tooltip {
-  position: absolute;
-  top: var(--tooltip-y, 0);
-  left: var(--tooltip-x, 50%);
-  z-index: 10;
-  width: max-content;
-  max-width: 86px;
-  padding: 3px 6px;
-  border: 1px solid #111111;
-  border-radius: 4px;
-  color: #111111;
-  background: #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.22);
-  font-size: 11px;
-  line-height: 1.2;
-  opacity: 0;
-  pointer-events: none;
-  text-align: center;
-  transform: translate(8px, calc(-100% - 8px));
-  transition: opacity 120ms ease;
-  white-space: nowrap;
-}
-
-.bag-switch:hover .switch-tooltip,
-.bag-switch:focus-visible .switch-tooltip {
-  opacity: 1;
-}
-
-.bag-title {
-  position: absolute;
-  top: 40px;
+  top: 39px;
   left: 50%;
   z-index: 4;
+  width: 236px;
   margin: 0;
-  color: #ffffff;
-  font-family: "Backpack Tab Qingke", "ZCOOL Qingke HuangYou", "站酷庆科黄油体", "Microsoft YaHei UI", "PingFang SC", sans-serif;
-  font-size: 28px;
-  font-weight: 400;
-  line-height: 1;
-  letter-spacing: 0;
-  pointer-events: none;
+  padding: 0 24px;
   transform: translateX(-50%);
-  text-shadow:
-    0 2px 0 #004b8c,
-    2px 0 0 #004b8c,
-    -2px 0 0 #004b8c,
-    0 -2px 0 #004b8c,
-    2px 2px 0 #00386f,
-    -2px 2px 0 #00386f,
-    0 3px 3px rgba(0, 40, 88, 0.52);
-  white-space: nowrap;
 }
 
 .pet-list {
@@ -552,29 +741,28 @@ useDraggable(petListRef, {
   height: auto;
 }
 
-.pet-drag-ghost {
+.round-drag-ghost {
   position: fixed;
   z-index: 1000;
+  display: grid;
+  grid-template-rows: 44px 10px;
+  justify-items: center;
+  align-content: start;
   pointer-events: none;
 }
 
-.pet-drag-ghost :deep(.pet-row) {
-  width: 100%;
-  height: 100%;
+.standby-ghost-slot {
   box-shadow:
-    inset 0 0 3px 1px rgba(47, 247, 255, 0.5),
-    inset 0 0 8px 3px rgba(0, 194, 255, 0.24),
+    inset 0 0 3px 1px rgba(47, 247, 255, 0.78),
+    inset 0 0 8px 3px rgba(0, 194, 255, 0.36),
     0 7px 14px rgba(0, 17, 44, 0.34);
-  cursor: grabbing;
 }
 
-.pet-drag-ghost :deep(*) {
-  pointer-events: none;
-}
-
-.pet-drag-ghost :deep(.pet-avatar img) {
-  filter:
-    drop-shadow(0 3px 2px rgba(0, 18, 58, 0.58))
-    drop-shadow(0 0 5px rgba(47, 247, 255, 0.62));
+.standby-ghost-slot img {
+  width: 40px;
+  height: 40px;
+  display: block;
+  object-fit: contain;
+  filter: none;
 }
 </style>

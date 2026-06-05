@@ -1,4 +1,10 @@
 <script setup lang="ts">
+withDefaults(defineProps<{
+  showClose?: boolean
+}>(), {
+  showClose: true,
+})
+
 const emit = defineEmits<{
   startPanelDrag: [event: PointerEvent]
 }>()
@@ -13,7 +19,7 @@ const dotRows = [12, 10]
         <span v-for="dotIndex in count" :key="dotIndex"></span>
       </div>
     </div>
-    <button type="button" class="close-button" aria-label="关闭">
+    <button v-if="showClose" type="button" class="close-button" aria-label="关闭">
       <img src="/backpack/icons/close.png" alt="" />
     </button>
   </header>
